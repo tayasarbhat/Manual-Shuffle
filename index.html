@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Numbers Shuffle</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/1.0.0/modern-normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #f0f4c3, #e8f5e9);
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            font-size: 3em;
+            animation: fadeInDown 1s ease;
+        }
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            animation: fadeInUp 1s ease;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .modern-table th, .modern-table td {
+            padding: 15px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            text-align: center;
+            color: #333;
+        }
+        .modern-table th {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+            font-weight: bold;
+        }
+        .modern-table td:first-child {
+            width: 50px;
+        }
+        textarea {
+            width: 100%;
+            height: 600px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.8);
+            color: #333;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 15px;
+            transition: transform 0.2s;
+        }
+        textarea:focus {
+            transform: scale(1.02);
+            outline: none;
+        }
+        button, input[type="file"] {
+            padding: 10px 20px;
+            margin-right: 10px;
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 30px;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        button:hover, input[type="file"]:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(-3px);
+        }
+        tr {
+            transition: background-color 0.3s ease;
+        }
+        tr:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            animation: fadeInUp 1.5s ease;
+        }
+        .animated-button {
+            animation: bounceIn 2s;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="animate__animated animate__fadeInDown">Number Shuffle </h1>
+    <textarea id="numberInput" placeholder="Enter up to 500 ten-digit numbers (each on a new line)" class="animate__animated animate__fadeInUp"></textarea>
+    <br>
+    <div class="button-row">
+        <button class="animated-button" onclick="processNumbers()">Display Numbers</button>
+        <button class="animated-button" onclick="downloadCSV()">Download CSV</button>
+        <input type="file" id="csvFile" accept=".csv" class="animated-button">
+        <button class="animated-button" onclick="displayCSVFromInput()">Show CSV Numbers</button>
+        <input type="file" id="mergeCsvFiles" accept=".csv" multiple class="animated-button">
+        <button class="animated-button" onclick="mergeCSVFiles()">Merge CSV Files</button>
+    </div>
+    <br>
+    <table id="numberTable" class="modern-table animate__animated animate__fadeInUp">
+        <thead>
+            <tr>
+                <th>Serial No.</th>
+                <th>Number</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Rows will be added here -->
+        </tbody>
+    </table>
+    
+    <script>
+        function processNumbers() {
+            const input = document.getElementById('numberInput').value;
+            const numbers = input.split('\n').filter(number => number.trim() !== "");
+            const prefixes = ["050", "054", "056", "052", "055", "058"];
+            const seenNumbers = new Set();
+            const tableBody = document.getElementById('tableBody');
+            
+            if (numbers.length > 500) {
+                alert('Please enter up to 500 numbers only.');
+                return;
+            }
+            
+            let modifiedNumbers = [];
+            numbers.forEach((number) => {
+                let baseNumber = number.trim();
+                if (baseNumber.length === 10 && !isNaN(baseNumber)) {
+                    prefixes.forEach(prefix => {
+                        let modifiedNumber = prefix + baseNumber.substring(3);
+                        if (modifiedNumber.length === 10) {
+                            modifiedNumbers.push(modifiedNumber);
+                        }
+                    });
+                }
+            });
+            
+            // Remove duplicates
+            modifiedNumbers = [...new Set(modifiedNumbers)];
+            
+            // Sort numbers by prefix order: 050, 054, 056, 052, 055, 058
+            modifiedNumbers.sort((a, b) => {
+                const prefixOrder = { "050": 0, "054": 1, "056": 2, "052": 3, "055": 4, "058": 5 };
+                return prefixOrder[a.substring(0, 3)] - prefixOrder[b.substring(0, 3)];
+            });
+            
+            tableBody.innerHTML = '';
+            modifiedNumbers.forEach((number, index) => {
+                const row = `<tr><td>${index + 1}</td><td>${number}</td></tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        function downloadCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Number\n";
+            const rows = document.querySelectorAll("#numberTable tbody tr");
+            rows.forEach(row => {
+                const number = row.querySelector("td:nth-child(2)").innerText;
+                csvContent += `${number}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            saveAs(blob, 'numbers.csv');
+        }
+
+        function displayCSV() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+            const tableBody = document.getElementById('tableBody');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    const lines = content.split('\n');
+                    tableBody.innerHTML = '';
+                    lines.forEach((line, index) => {
+                        if (index > 0 && line.trim() !== "") { // Skip the header row
+                            const row = `<tr><td>${index}</td><td>${line.trim()}</td></tr>`;
+                            tableBody.innerHTML += row;
+                        }
+                    });
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function displayCSVFromInput() {
+            const fileInput = document.getElementById('csvFile');
+            if (fileInput.files.length > 0) {
+                displayCSV();
+            } else {
+                alert('Please select a CSV file first.');
+            }
+        }
+
+        function mergeCSVFiles() {
+            const fileInput = document.getElementById('mergeCsvFiles');
+            const files = fileInput.files;
+            
+            if (files.length > 0) {
+                let allNumbers = new Set();
+                let filesProcessed = 0;
+                Array.from(files).forEach((file) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const content = e.target.result;
+                        const lines = content.split('\n');
+                        lines.forEach((line, index) => {
+                            if (index > 0 && line.trim() !== "") { // Skip the header row
+                                allNumbers.add(line.trim());
+                            }
+                        });
+                        filesProcessed++;
+                        
+                        // If all files have been processed, allow downloading the merged file
+                        if (filesProcessed === files.length) {
+                            let csvContent = "data:text/csv;charset=utf-8,Number\n";
+                            Array.from(allNumbers).forEach(number => {
+                                csvContent += `${number}\n`;
+                            });
+                            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                            saveAs(blob, 'merged_numbers.csv');
+                        }
+                    };
+                    reader.readAsText(file);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
