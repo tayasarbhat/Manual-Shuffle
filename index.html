@@ -94,7 +94,7 @@
 </head>
 <body>
     <h1 class="animate__animated animate__fadeInDown">Number Shuffle </h1>
-    <textarea id="numberInput" placeholder="Enter up to 500 ten-digit numbers (each on a new line)" class="animate__animated animate__fadeInUp"></textarea>
+    <textarea id="numberInput" placeholder="Enter up to 500 ten-digit numbers (each on a new line) Made some changes on advice of Mr. Abass" class="animate__animated animate__fadeInUp"></textarea>
     <br>
     <div class="button-row">
         <button class="animated-button" onclick="processNumbers()">Display Numbers</button>
@@ -148,7 +148,7 @@
             
             // Sort numbers by prefix order: 050, 054, 056, 052, 055, 058
             modifiedNumbers.sort((a, b) => {
-                const prefixOrder = { "050": 0, "054": 1, "056": 2, "052": 3, "055": 4, "058": 5 };
+                const prefixOrder = { "050": 0, "054": 1, "056": 2, "052": 3, "055": 4 };
                 return prefixOrder[a.substring(0, 3)] - prefixOrder[b.substring(0, 3)];
             });
             
